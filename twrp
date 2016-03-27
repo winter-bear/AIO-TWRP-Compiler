@@ -1,0 +1,1095 @@
+#!/bin/bash
+e="\x1b[";c=$e"39;49;00m";y=$e"4;33m";ye=$e"33;01m";cy=$e"36;01m"
+
+os=$(lsb_release -s -d | grep -o BBQLinux)
+if [[ $os != BBQLinux ]];then clear
+echo -e $cy"\nSorry guys, nice try, this script only works on \
+"$y"BBQLinux$c$cy only !$c :D\n\n$cy"$ye"Pls wait$c$cy . . .\n\n$c"
+sleep 5
+python -mwebbrowser http://bbqlinux.org &> /dev/null &
+python -mwebbrowser http://webchat.freenode.net/?channels=bbqlinux &> /dev/null &
+python -mwebbrowser https://plus.google.com/communities/106642342159578225975 &> /dev/null &
+python -mwebbrowser http://forum.xda-developers.com/showthread.php?t=2695242 &> /dev/null &
+echo -en "\033c";exit 0
+fi
+
+while [[ answer != 0 ]];do echo -en "\033c";echo -e $cy"
+  ######################################################################
+  #                                                                    #
+  #                 Welcome to the Compile "$y"TWRP$c$cy Script                 #
+  #           For compiling "$y"TWRP$c$cy Recovery for "$y"MediaTek$c$cy devices         #
+  #                    On bbqlinux-2016.02.27-x86_64                   #
+  #                                                                    #
+  #                      By "$y"yuweng$c$cy@xda-developers                      #
+  #                                                                    #
+  ######################################################################\n
+     What would you like to do:\n
+     1) Sync source code base repository   	  6) Push Device Tree
+     2) Setup BoardConfig.mk
+     3) Compile "$y"TWRP$c$cy
+     4) Push recovery              
+     5) Clean Up\n
+  "$ye"x"$c"$cy. Exit					"$ye"h$c$cy) Get Help\n"$c
+read -p '' answer;case $answer in x|X) break;;
+
+1) echo -en "\033c";echo -e $cy"\nSyncing source code base repository
++++++++++++++++++++++++++++++++++++\nFull Credits & Thanks to the \
+"$y"OmniROM$c$cy & "$y"CM$c$cy Development Team\n\nPlease take note that \
+this will take quite some time to complete. $c"$cy"Make sure\nthat your \
+broadband is connected first !\n\nYou can press "$ye"Ctrl + z$c$cy to \
+stop this script just in case you need to . . .\n\nTo continue, just run \
+this "$y"Menu$c$cy again & it will resume syncing.\n\nYou can also update it \
+from time to time & updating won't take that long.\n\n
+[ 1 ] Use "$y"OmniROM$c$cy repo
+[ 2 ] Use "$y"CM$c$cy repo
+[ B ] Back to "$y"Main Menu\n$c\n"
+read -p "Pls select (1 or 2) ? " repo
+
+if [[ $repo == [Bb] ]];then sleep .5;continue
+
+elif [[ $repo == 1 ]] || [[ $repo == 2 ]];then
+if curl --silent --head http://www.google.com  | grep k >/dev/null;then
+
+mkdir -p ~/Desktop/TWRP
+
+if [[ $repo == 1 ]]; then echo "omni" > ~/Desktop/TWRP/.repo; repo=$(cat ~/Desktop/TWRP/.repo)
+# Cleaning up old repo to avoid conflict. . .
+rm -rf ~/omni/.repo/manifests
+rm -rf ~/omni/.repo/manifest.xml
+rm -rf ~/omni/bootable/*
+rm -rf ~/omni/.repo/local_manifests
+cd ~/omni
+repo init -u https://github.com/omnirom/android.git -b android-4.4
+#repo init -u https://github.com/omnirom/android.git -b android-6.0
+
+elif [[ $repo == 2 ]]; then echo "cm" > ~/Desktop/TWRP/.repo; repo=$(cat ~/Desktop/TWRP/.repo)
+# Cleaning up old repo to avoid conflict. . .
+rm -rf ~/cm/.repo/manifests
+rm -rf ~/cm/.repo/manifest.xml
+rm -rf ~/cm/bootable/*
+rm -rf ~/cm/.repo/local_manifests
+cd ~/cm
+repo init -u https://github.com/cyanogenmod/android.git -b cm-11.0
+#repo init -u https://github.com/cyanogenmod/android.git -b cm-13.0
+fi
+
+else clear;echo -e $cy"\nInternet status: "$y"Down$cy !\n\n"$c;sleep 3;continue
+fi 
+
+clear;echo -e $cy"\nWhich "$y"TWRP$c$cy branch do you wanna build ?\n\n
+1) "$y"android-5.1$c$cy - For legacy devices using "$ye"TW_DISABLE_TTF := true$cy
+2) "$y"android-6.0$c$cy\n\n
+B) Back to "$y"Main Menu\n$c\n"
+read -p "Pls select (1 or 2) ? " branch
+
+if [[ $branch == [Bb] ]];then sleep .5;continue
+
+elif [[ $branch == 1 ]] || [[ $branch == 2 ]];then mkdir -p ~/$repo/.repo/local_manifests
+
+clear;echo -e $cy"\nSelect either to use Full-Source or \
+"$y"Part-Source$c$cy to build "$y"TWRP$c$cy\n
+Typical initial sync on a 5MB Broadband
++++++++++++++++++++++++++++++++++++++++
+Full-Source - More than 8 hours !
+"$y"Part-Source$c$cy - Approx 1 1/2 hours only
+
+[ 1 ] Sync Full-Source
+[ 2 ] Sync "$y"Part-Source$c$cy for building "$y"TWRP$c$cy only\n\n
+[ B ] Back to "$y"Main Menu\n$c\n"
+read -p "Pls select (1 or 2) ? " sync
+
+if [[ $sync == [Bb] ]];then sleep .5;continue
+
+elif [[ $sync == 1 ]];then
+
+echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<manifest>" > ~/$repo/.repo/local_manifests/local_manifest.xml
+
+if [[ $repo == omni ]] && [[ $branch == 1 ]];then echo "android-5.1" > ~/Desktop/TWRP/.branch
+echo -e "<remove-project name=\"android_bootable_recovery\" />
+<project path=\"bootable/recovery\" name=\"omnirom/android_bootable_recovery\" revision=\"android-5.1\" />
+</manifest>" >> ~/omni/.repo/local_manifests/local_manifest.xml
+elif [[ $repo == omni ]] && [[ $branch == 2 ]];then echo "android-6.0" > ~/Desktop/TWRP/.branch
+echo -e "<remove-project name=\"android_bootable_recovery\" />
+<project path=\"bootable/recovery\" name=\"omnirom/android_bootable_recovery\" revision=\"android-6.0\" />
+</manifest>" >> ~/omni/.repo/local_manifests/local_manifest.xml
+elif [[ $repo == cm ]] && [[ $branch == 1 ]];then echo "android-5.1" > ~/Desktop/TWRP/.branch
+
+if grep "cm-12.0\|cm-12.1\|cm-13.0" ~/$repo/.repo/manifest.xml >/dev/null 2>&1; then
+echo -e "<remove-project name=\"CyanogenMod/android_bootable_recovery\" />
+<project path=\"bootable/recovery\" name=\"omnirom/android_bootable_recovery\" revision=\"android-5.1\" />
+</manifest>" >> ~/cm/.repo/local_manifests/local_manifest.xml
+else echo -e "<remove-project name=\"CyanogenMod/android_bootable_recovery\" />\n<remove-project name=\"CyanogenMod/android_bootable_recovery-cm\"    />
+<project path=\"bootable/recovery\" name=\"omnirom/android_bootable_recovery\" revision=\"android-5.1\" />
+</manifest>" >> ~/cm/.repo/local_manifests/local_manifest.xml
+fi
+
+elif [[ $repo == cm ]] && [[ $branch == 2 ]];then echo "android-6.0" > ~/Desktop/TWRP/.branch
+
+if grep "cm-12.0\|cm-12.1\|cm-13.0" ~/$repo/.repo/manifest.xml >/dev/null 2>&1; then
+echo -e "<remove-project name=\"CyanogenMod/android_bootable_recovery\" />
+<project path=\"bootable/recovery\" name=\"omnirom/android_bootable_recovery\" revision=\"android-6.0\" />
+</manifest>" >> ~/cm/.repo/local_manifests/local_manifest.xml
+else echo -e "<remove-project name=\"CyanogenMod/android_bootable_recovery\" />\n<remove-project name=\"CyanogenMod/android_bootable_recovery-cm\"    />
+<project path=\"bootable/recovery\" name=\"omnirom/android_bootable_recovery\" revision=\"android-6.0\" />
+</manifest>" >> ~/cm/.repo/local_manifests/local_manifest.xml
+fi
+
+fi
+
+elif [[ $sync == 2 ]];then 
+# below are the absolute minimum Part-Source projects needed for building
+# TWRP using prebuilt kernel.
+# If later version doesn't built then obviously additional new projects
+# are needed then add to the below !
+
+# remove all <!-- .* --> comment line just in case exists or it will not
+# sync properly especially ON CM repo. . .
+cat ~/$repo/.repo/manifests/default.xml | sed '/<!--.*-->/d'| sed '/<!--/,/-->/d' > ~/x.tmp;mv ~/x.tmp ~/x
+# Add the required new projects below here or use roomservice.xml
+# https://wiki.cyanogenmod.org/w/Doc:_Using_manifests#Adding_and_replacing_repositories
+
+
+
+
+
+
+
+
+# Do not remove the below absolute minimum Part-Source projects or ERROR 1 in build !
+grep -v android_build ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v bionic ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+grep -v bison ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/boringssl ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+grep -v external/bouncycastle ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/busybox ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/bzip2 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/clang ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/compiler-rt ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/e2fsprogs ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+# Optional => TARGET_USERIMAGES_USE_F2FS := true
+#grep -v f2fs-tools ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+grep -v external/freetype ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/gptfdisk ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/icu ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+grep -v external/jemalloc ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v jpeg ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+grep -v external/libcxx ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/libdrm ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/libpng ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/libselinux ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/libunwind ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/llvm ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+# Optional => TW_INCLUDE_NTFS_3G := true
+#grep -v external/ntfs-3g ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+grep -v external/pcre ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/safe-iop ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/selinux ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/sepolicy ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/squashfs-tools ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+# Optional => TW_USE_TOOLBOX := true
+#grep -v external/toybox ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+#grep -v external/mksh ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+grep -v external/zlib ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v frameworks/native ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v libhardware ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v libcore ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v libnativehelper ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v clang/linux-x86/host/3.6 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+# un-remark the below required for x64
+#grep -v linux-x86/aarch64/aarch64-linux-android-4.8 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+#grep -v linux-x86/aarch64/aarch64-linux-android-4.9 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+# un-remark the below required for kernel compiling if not using TARGET_PREBUILT_KERNEL
+#grep -v linux-x86/arm/arm-eabi-4.6 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+#grep -v linux-x86/arm/arm-eabi-4.7 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+#grep -v linux-x86/arm/arm-eabi-4.8 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+grep -v linux-x86/arm/arm-linux-androideabi-4.9 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v x86_64-linux-glibc2.15-4.8 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v prebuilts/misc ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v prebuilts/ndk ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v prebuilts/sdk ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v system/core ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v system/extras ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v system/netd ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+if [[ $repo == omni ]];then
+grep -v vendor/omni ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+elif [[ $repo == cm ]];then
+grep -v vendor/cm ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+fi
+
+# For android-5.1/ cm-12.1 & older branch
+if ! grep "cm-13.0\|android-6.0" ~/$repo/.repo/manifest.xml >/dev/null 2>&1; then
+grep -v external/openssl ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/stlport ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/genext2fs ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/gcc-demangle ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/libsepol ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v external/checkpolicy ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+# For android-4.4/ 5.0/ cm-11-0, cm-12.0 branch
+grep -v clang/linux-x86/host/3.3 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v clang/linux-x86/host/3.4 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v clang/linux-x86/host/3.5 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+grep -v linux-x86/arm/arm-linux-androideabi-4.6 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v linux-x86/arm/arm-linux-androideabi-4.7 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v linux-x86/arm/arm-linux-androideabi-4.8 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+grep -v x86_64-linux-glibc2.7-4.6 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v x86_64-linux-glibc2.11-4.8 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v x86_64-linux-glibc2.15-4.8 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+fi
+
+if grep "cm-11.0\|android-4.4" ~/$repo/.repo/manifest.xml >/dev/null 2>&1; then
+grep -v abi/cpp ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+fi
+
+# Optional for x86 SoC
+#grep -v linux-x86/x86/i686-linux-android-4.7 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+#grep -v linux-x86/x86/x86_64-linux-android-4.8 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+#grep -v linux-x86/x86/x86_64-linux-android-4.9 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+# Create proper formatting for local_manifest.xml for Part-Source
+grep -Eo '".*"' ~/x | awk '{print $2" "$3" "$4" "$5}' > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v '^\s*$' ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+cat ~/x | sed 's/.*name.*/<remove-project &/' > ~/x.tmp;mv ~/x.tmp ~/x
+cat ~/x | sed -e "s/$/ \/>/" > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v "encoding" ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v "dest" ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+if grep "cm-12.0\|cm-12.1\|cm-13.0" ~/$repo/.repo/manifest.xml >/dev/null 2>&1; then
+grep -v lz4 ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v qcom_audio ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v qcom_bt ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v qcom_display ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v qcom_media ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v qcom_wlan ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+grep -v hardware_ril ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+# Remove all unused qcom projects
+echo -e "<remove-project name=\"CyanogenMod/android_hardware_qcom_audio\" />" >> ~/x
+echo -e "<remove-project name=\"CyanogenMod/android_hardware_qcom_bt\" />" >> ~/x
+echo -e "<remove-project name=\"CyanogenMod/android_hardware_qcom_display\" />" >> ~/x
+echo -e "<remove-project name=\"CyanogenMod/android_hardware_qcom_media\" />" >> ~/x
+echo -e "<remove-project name=\"CyanogenMod/android_hardware_qcom_wlan\" />" >> ~/x
+echo -e "<remove-project name=\"CyanogenMod/android_hardware_ril\" />" >> ~/x
+fi
+
+# Omnirom android-6.0 requires additional busybox
+if grep -E "omnirom" "android-6.0" ~/$repo/.repo/manifest.xml>/dev/null 2>&1; then
+echo -e "<project path=\"external/busybox\" name=\"CyanogenMod/android_external_busybox\" revision=\"cm-13.0\" />" >> ~/x
+fi
+
+# To build TWRP on cm-13.0 requires additional busybox
+if grep "cm-13.0" ~/$repo/.repo/manifest.xml >/dev/null 2>&1; then
+# Optional when using flag => TW_USE_TOOLBOX := true
+#grep -v toybox ~/x > ~/x.tmp;mv ~/x.tmp ~/x
+
+echo -e "<project path=\"external/busybox\" name=\"CyanogenMod/android_external_busybox\" revision=\"cm-13.0\" />" >> ~/x
+fi
+
+if [[ $repo == omni ]] && [[ $branch == 1 ]];then echo "android-5.1" > ~/Desktop/TWRP/.branch
+echo -e "<project path=\"bootable/recovery\" name=\"android_bootable_recovery\" remote=\"omnirom\" revision=\"android-5.1\" />" >> ~/x
+elif [[ $repo == omni ]] && [[ $branch == 2 ]];then echo "android-6.0" > ~/Desktop/TWRP/.branch
+echo -e "<project path=\"bootable/recovery\" name=\"android_bootable_recovery\" remote=\"omnirom\" revision=\"android-6.0\" />" >> ~/x
+elif [[ $repo == cm ]] && [[ $branch == 1 ]];then echo "android-5.1" > ~/Desktop/TWRP/.branch
+echo -e "<project path=\"bootable/recovery\" name=\"omnirom/android_bootable_recovery\" revision=\"android-5.1\" />" >> ~/x
+elif [[ $repo == cm ]] && [[ $branch == 2 ]];then echo "android-6.0" > ~/Desktop/TWRP/.branch
+echo -e "<project path=\"bootable/recovery\" name=\"omnirom/android_bootable_recovery\" revision=\"android-6.0\" />" >> ~/x
+fi
+
+echo "</manifest>" >> ~/x
+sed -i '1s/^/<?xml version="1.0" encoding="UTF-8"?>\n<manifest>\n/' ~/x
+mv -f ~/x ~/$repo/.repo/local_manifests/local_manifest.xml >/dev/null 2>&1
+
+else clear;echo -e $cy"\n"$ye"Invalid Option$c$cy !\n\n"$c;sleep 2;continue
+fi
+
+else clear;echo -e $cy"\n"$ye"Invalid Option$c$cy !\n\n"$c;sleep 2;continue
+fi
+
+else clear;echo -e $cy"\n"$ye"Invalid Option$c$cy !\n\n"$c;sleep 2;continue
+fi
+
+
+# If ERROR then lower it, standard is -j4
+START=`date +%s`;echo
+
+2>&1 | repo sync -f -j64 --force-sync 2>&1 > ~/Desktop/TWRP/sync.log
+
+END=`date +%s`;ELAPSED=$(( $END - $START ));num=$ELAPSED;min=0;hour=0;day=0;if((num>59))
+then ((sec=num%60));((num=num/60));if((num>59));then ((min=num%60));((num=num/60))
+if((num>23));then ((hour=num%24));((day=num/24));else ((hour=num));fi;else ((min=num));fi
+else ((sec=num));fi;echo -en "\033c";echo -e $cy"\n\nElapsed time: $cy"$y$day$c$cy"day  \
+"$y$hour$c$cy"hour  "$y$min$c$cy"min  "$y$sec$c$cy"sec\n\n\n$cy"$y"Done$c$cy !$c\n\n"
+
+;;
+
+2) echo -en "\033c";cd ;echo -e $cy"\nSetting up your Android device
+++++++++++++++++++++++++++++++\nPlease ensure that either your device \
+"$y"boot.img$c$cy or "$y"recovery.img$c$cy exists at\n"$y"/home/$(whoami)/\
+Desktop/TWRP$c$cy folder\n\nPress$c Y$c$cy to continue\nPress$c N$c$cy to \
+Return to "$y"Main Menu$c\n\n"$c
+
+read -p "Pls select (Y/y or N/n) ? " bc
+if [[ $bc == [Nn] ]];then sleep .5;continue
+
+elif [[ $bc == [Yy] ]];then
+
+if [ ! -e ~/Desktop/TWRP/.repo ];then echo -en "\033c";echo -e $cy"
+No "$y"Source$c$cy folder info found ! Use "$y"Menu 1$c$cy to sync source \
+first . . .\n\n\n"$ye"Please wait$c$cy . . ."$c;sleep 5;continue
+elif [ ! -e ~/Desktop/TWRP/.branch ];then echo -en "\033c";echo -e $cy"
+No "$y"branch$c$cy info found ! Use "$y"Menu 1$c$cy to sync source first . . .
+\n\n"$ye"Please wait$c$cy . . ."$c;sleep 5;continue
+fi
+
+repo=$(cat ~/Desktop/TWRP/.repo);branch=$(cat ~/Desktop/TWRP/.branch)
+
+if [ ! -e ~/Desktop/TWRP/boot.img ] && [ ! -e ~/Desktop/TWRP/recovery.img ];
+then clear; echo -e $cy"\n"$ye"Error !$c$cy No "$ye"boot.img"$c$cy" or \
+"$ye"recovery.img$c$cy found !\n\n"$ye"Please wait$c$cy . . .\n\n"$c
+sleep 5;clear;continue
+fi
+
+if [ -e ~/Desktop/TWRP/boot.img ] && [ -e ~/Desktop/TWRP/recovery.img ];
+then clear; echo -e $cy"\n"$ye"Error !$c$cy Both "$y"boot.img$c$cy & \
+"$y"recovery.img$c$cy exist ! Pls delete either one . . .\n
+"$ye"Please wait$c$cy . . .\n\n"$c
+sleep 5;clear;continue;
+fi
+
+# To prevent accidental rm -rf if variable is empty
+if [[ $repo == omni ]]; then rm -rf ~/omni/device
+elif [[ $repo == cm ]]; then rm -rf ~/cm/device
+fi
+
+clear;echo;echo;read -p "Pls enter your device vendor name (e.g. Lenovo) \
+: " ven;echo;echo;clear;echo;echo;echo; read -p "Pls enter your device name \
+(e.g. S939) : " dev;echo;echo; mkdir -p ~/$repo/device/"$ven"/"$dev"
+cd ~/$repo/device/"$ven"/"$dev"
+
+clear;echo;echo;echo -e $cy"Pls plug-in your "$ye"Android$c$cy device USB \
+to the PC now\n\nIf it stops here for a long time then press "$ye"Ctrl + z$c$cy \
+to stop then exit\n\n"$ye"Terminal$c$cy & restart this script again . . .\n\n$c"
+read -p "Press [Enter] key to continue . . ."
+
+echo;echo;sudo adb kill-server
+sleep 1 # delay require for adb command to work properly
+sudo adb start-server
+sleep 1 # delay require for adb command to work properly
+adb=$(adb "get-state")
+ubifs=$(adb shell cat /proc/filesystems)
+
+if [[ $adb == unknown ]];then clear;echo -e $cy"\n"$ye"adb shell$c$cy is \
+not working, please check\n\n"$ye"Pls wait$c$cy . . ."$c
+sleep 8;clear;continue
+fi
+
+if [[ $ubifs == *"ubifs"* ]];then clear;echo -e $cy"\n"$y"ubifs$c$cy \
+filesystem was submmitted for gerrit review since "$y"android-4.4$c !$cy
+\nPlease work with my Master Shifu "$y"Dees_Troy$c$cy to get it officially merged !
+\n\n"$ye"Pls wait$c$cy . . ."$c;sleep 10
+
+if curl --silent --head http://www.google.com  | grep k >/dev/null;then
+python -mwebbrowser https://gerrit.omnirom.org/#/c/8409/ &> /dev/null &
+clear;echo -e $cy"\n"$ye"Please wait$c$cy . . .\n\n"$c; sleep 3;continue
+else clear;echo -e $cy"\nInternet status: "$y"Down$c !\n\n"$c;sleep 3;continue
+fi
+
+fi
+
+# Typical Android device require below info for ROM update, some require more info
+model=$(adb shell "getprop ro.product.model" | sed -e 's/\r//g' | xargs)
+device=$(adb shell "getprop ro.product.device" | sed -e 's/\r//g' | xargs)
+
+if [ -e ~/Desktop/TWRP/boot.img ];then BOOTIMAGE=boot.img
+elif [ -e ~/Desktop/TWRP/recovery.img ];then BOOTIMAGE=recovery.img
+fi
+
+# Thanks to RD osm0sis@XDA for unpackbootimg
+# => http://forum.xda-developers.com/showthread.php?t=2073775
+if [ ! -e ~/Desktop/TWRP/unpackbootimg ];then echo
+wget -P ~/Desktop/TWRP https://raw.github.com/yuweng/TWRP/TWRP/unpackbootimg
+chmod 0777 ~/Desktop/TWRP/unpackbootimg
+fi
+
+# Adapt original CM mkvendor.sh to extract standard Android image
+# => http://www.koushikdutta.com/2010/10/porting-clockwork-recovery-to-new.html
+BOOTIMAGEFILE=~/Desktop/TWRP/$BOOTIMAGE
+TMPDIR=/tmp/$(whoami)/bootimg
+rm -rf $TMPDIR
+mkdir -p $TMPDIR
+cp $BOOTIMAGEFILE $TMPDIR
+pushd $TMPDIR >/dev/null
+chmod 0777 ~/Desktop/TWRP/unpackbootimg
+~/Desktop/TWRP/unpackbootimg -i $BOOTIMAGEFILE >/dev/null
+mkdir ramdisk
+pushd ramdisk >/dev/null
+gunzip -c ../$BOOTIMAGE-ramdisk.gz | cpio -i
+popd >/dev/null
+    
+RECOVERY_FSTAB=$TMPDIR/ramdisk/etc/recovery.fstab
+if [[ -f $RECOVERY_FSTAB ]];then
+	rm ~/Desktop/TWRP/.MTK >/dev/null 2>&1
+	cp $RECOVERY_FSTAB ~/$repo/device/"$ven"/"$dev"/recovery.fstab
+else echo "MTK" > ~/Desktop/TWRP/.MTK; # MTK Header
+fi
+
+# AIK unpackbootimg will extract all info, below will detect if more than 1 byte then
+# only use those info for BOARD_MKBOOTIMG_ARGS at BoardConfig.mk
+cli=$( ls -l $TMPDIR/$BOOTIMAGE-cmdline | awk '{print $5}' )
+bod=$( ls -l $TMPDIR/$BOOTIMAGE-board | awk '{print $5}' )
+bas=$( ls -l $TMPDIR/$BOOTIMAGE-base | awk '{print $5}' )
+pas=$( ls -l $TMPDIR/$BOOTIMAGE-pagesize | awk '{print $5}' )
+kef=$( ls -l $TMPDIR/$BOOTIMAGE-kerneloff | awk '{print $5}' )
+raf=$( ls -l $TMPDIR/$BOOTIMAGE-ramdiskoff | awk '{print $5}' )
+taf=$( ls -l $TMPDIR/$BOOTIMAGE-tagsoff | awk '{print $5}' )
+
+if [[ $cli > 1 ]]; then cmdline="--cmdline '`cat $TMPDIR/$BOOTIMAGE-cmdline`'";echo "$cmdline";fi
+if [[ $bod > 1 ]]; then board="--board `cat $TMPDIR/$BOOTIMAGE-board`"; echo "$board";fi
+if [[ $bas > 1 ]]; then base="--base `cat $TMPDIR/$BOOTIMAGE-base`"; echo "$base";fi
+if [[ $pas > 1 ]]; then pagesize="--pagesize `cat $TMPDIR/$BOOTIMAGE-pagesize`"; echo "$pagesize";fi
+if [[ $kef > 1 ]]; then kerneloff="--kernel_offset `cat $TMPDIR/$BOOTIMAGE-kerneloff`"; echo "$kerneloff";fi
+if [[ $raf > 1 ]]; then ramdiskoff="--ramdisk_offset `cat $TMPDIR/$BOOTIMAGE-ramdiskoff`"; echo "$ramdiskoff";fi
+if [[ $taf > 1 ]]; then tagsoff="--tags_offset `cat $TMPDIR/$BOOTIMAGE-tagsoff`"; echo "$tagsoff";fi
+
+if [ -f $TMPDIR/$BOOTIMAGE-second ]; then
+	cp $TMPDIR/$BOOTIMAGE-second ~/$repo/device/"$ven"/"$dev"/$BOOTIMAGE-second
+	second=$BOOTIMAGE-second
+	second="--second ~/$repo/device/"$ven"/"$dev"/$second"; echo "$second"
+	secondoff=`cat $TMPDIR/$BOOTIMAGE-secondoff`
+	secondoff="--second_offset $secondoff"; echo "$secondoff"
+fi
+
+if [ -f $TMPDIR/$BOOTIMAGE-dtb ]; then
+	cp $TMPDIR/$BOOTIMAGE-dtb ~/$repo/device/"$ven"/"$dev"/$BOOTIMAGE-dtb
+	dtb=`ls $BOOTIMAGE-dtb`;                   
+	dtb="--dt ~/$repo/device/"$ven"/"$dev"/$dtb"; echo "$dtb"
+fi
+
+cp $TMPDIR/$BOOTIMAGE-zImage ~/$repo/device/"$ven"/"$dev"/kernel
+popd >/dev/null
+rm -rf $TMPDIR
+
+# For other Menu to pick up vendor & device name
+echo "$ven"> ~/Desktop/TWRP/.ven;echo "$dev"> ~/Desktop/TWRP/.dev
+
+read -p "
+Press [Enter] key to continue . . .
+";
+
+echo -e "PRODUCT_MAKEFILES := \\
+    \$(LOCAL_DIR)/"$repo"_"$dev".mk" > ~/$repo/device/"$ven"/"$dev"/AndroidProducts.mk
+    
+echo -e "TARGET_ARCH := arm
+TARGET_CPU_ABI := armeabi
+TARGET_ARCH_VARIANT := armv7-a-neon
+TARGET_CPU_VARIANT := cortex-a9
+
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := 0x105c0000
+BOARD_FLASH_BLOCK_SIZE := 131072
+
+TARGET_PREBUILT_KERNEL := device/"$ven"/"$dev"/kernel
+
+BOARD_MKBOOTIMG_ARGS := $base $pagesize $kerneloff $ramdiskoff $tagsoff $second $secondoff $cmdline $board $dtb" > ~/$repo/device/"$ven"/"$dev"/BoardConfig.mk
+
+if [[ $branch == android-5.1 ]]; then echo -e "\n#MTK common twrp flags
+TW_NO_EXFAT := true
+TWHAVE_SELINUX := true
+TW_DISABLE_TTF := true
+#TW_USE_TOOLBOX := true
+TW_NO_EXFAT_FUSE := true
+TW_THEME := portrait_mdpi
+#RECOVERY_SDCARD_ON_DATA := true
+TW_USE_MODEL_HARDWARE_ID_FOR_DEVICE_ID := true
+TARGET_USE_CUSTOM_LUN_FILE_PATH := \"/sys/devices/platform/mt_usb/gadget/lun%d/file\"" >> ~/$repo/device/"$ven"/"$dev"/BoardConfig.mk
+elif [[ $branch == android-6.0 ]]; then echo -e "\n#MTK common twrp flags
+TW_NO_EXFAT := true
+TWHAVE_SELINUX := true
+#TW_USE_TOOLBOX := true
+TW_NO_EXFAT_FUSE := true
+TW_THEME := portrait_mdpi
+#RECOVERY_SDCARD_ON_DATA := true
+TW_USE_MODEL_HARDWARE_ID_FOR_DEVICE_ID := true
+TARGET_USE_CUSTOM_LUN_FILE_PATH := \"/sys/devices/platform/mt_usb/gadget/lun%d/file\"" >> ~/$repo/device/"$ven"/"$dev"/BoardConfig.mk
+fi
+
+if [[ $repo == cm ]]; then echo -e "\$(call inherit-product, build/target/product/full_base_telephony.mk)
+\n# Time Zone data Credits to desalesouche => http://forum.xda-developers.com/showpost.php?p=64850444&postcount=1204
+#PRODUCT_COPY_FILES += \\\\
+#bionic/libc/zoneinfo/tzdata:recovery/root/system/usr/share/zoneinfo/tzdata
+\nPRODUCT_BUILD_PROP_OVERRIDES += \\\\
+    PRODUCT_MODEL=\"$model\" \\\\
+    TARGET_DEVICE=\"$device\"
+
+PRODUCT_NAME := full_"$dev"
+PRODUCT_DEVICE := "$dev"" > ~/cm/device/"$ven"/"$dev"/device_"$dev".mk
+
+echo "# Inherit device configuration
+\$(call inherit-product, device/"$ven"/"$dev"/device_"$dev".mk)
+
+## Device identifier. This must come after all inclusions
+PRODUCT_DEVICE := "$dev"
+PRODUCT_NAME := cm_"$dev"
+PRODUCT_BRAND := "$ven"
+PRODUCT_MODEL := "$dev"
+PRODUCT_MANUFACTURER := "$ven"" > ~/cm/device/"$ven"/"$dev"/cm.mk
+elif [[ $repo == omni ]]; then echo -e "\$(call inherit-product, \$(SRC_TARGET_DIR)/product/full_base_telephony.mk)
+\n# Time Zone data Credits to desalesouche => http://forum.xda-developers.com/showpost.php?p=64850444&postcount=1204
+#PRODUCT_COPY_FILES += \\\\
+#bionic/libc/zoneinfo/tzdata:recovery/root/system/usr/share/zoneinfo/tzdata
+\nPRODUCT_BUILD_PROP_OVERRIDES += \\\\
+    PRODUCT_MODEL=\"$model\" \\\\
+    TARGET_DEVICE=\"$device\"
+
+PRODUCT_NAME := omni_"$dev"
+PRODUCT_DEVICE := "$dev"" > ~/omni/device/"$ven"/"$dev"/omni_"$dev".mk
+fi
+
+if [ ! -f ~/$repo/device/"$ven"/"$dev"/recovery.fstab ];then echo -e "# Source code Thanks to RD chrmhoffmann@XDA
+# https://github.com/chrmhoffmann/android_device_wiko_stairway/blob/cm-11.0/boot.mk
+
+define make_header
+  perl -e 'print pack(\"a4 L a32 a472\", \"\\\x88\\\x16\\\x88\\\x58\", \$\$ARGV[0], \$\$ARGV[1], \"\\\xFF\"x472)' \$(1) \$(2) > \$(3)
+endef
+
+# Dummy mkbootimg required or build error about boot.img on latter CM repo
+\$(INSTALLED_BOOTIMAGE_TARGET): \$(MKBOOTIMG) \$(INTERNAL_BOOTIMAGE_FILES)
+	\$(call pretty,\"Target boot image: \$@\")
+	\$(hide) \$(MKBOOTIMG) \$(INTERNAL_BOOTIMAGE_ARGS) --output \$@
+	\$(hide) \$(call assert-max-image-size,\$@,\$(BOARD_BOOTIMAGE_PARTITION_SIZE),raw)
+	
+\$(recovery_ramdisk).mtk.header: \$(recovery_ramdisk)
+	size=\$\$(\$(call get-file-size,\$(recovery_ramdisk))); \\
+		\$(call make_header, \$\$((size)), \"RECOVERY\", \$@)
+\$(recovery_ramdisk).mtk:  \$(MKBOOTIMG) \$(recovery_ramdisk).mtk.header
+	\$(call pretty,\"Adding MTK header to recovery ramdisk.\")
+	cat \$(recovery_ramdisk).mtk.header \$(recovery_ramdisk) > \$@
+
+INTERNAL_MTK_RECOVERYIMAGE_ARGS := \\
+		--kernel \$(PRODUCT_OUT)/kernel \\
+		--ramdisk \$(recovery_ramdisk).mtk
+
+\$(INSTALLED_RECOVERYIMAGE_TARGET): \$(MKBOOTIMG) \\
+		\$(recovery_ramdisk).mtk \$(PRODUCT_OUT)/kernel
+	@echo -e \${CL_CYN}\"----- Making recovery image ------\"\${CL_RST}
+	\$(MKBOOTIMG) \$(INTERNAL_MTK_RECOVERYIMAGE_ARGS) \\
+		\$(BOARD_MKBOOTIMG_ARGS) --output \$@
+	\$(hide) \$(call assert-max-image-size,\$@, \\
+		\$(BOARD_RECOVERYIMAGE_PARTITION_SIZE),raw)
+	@echo -e \${CL_CYN}\"Made recovery image: \$@\"\${CL_RST}" > ~/$repo/device/"$ven"/"$dev"/boot.mk
+
+echo -e "BOARD_CUSTOM_BOOTIMG_MK := device/"$ven"/"$dev"/boot.mk" >> ~/$repo/device/"$ven"/"$dev"/BoardConfig.mk
+fi
+
+if [ ! -f ~/$repo/device/"$ven"/"$dev"/recovery.fstab ];then echo "# mount point	fstype    device    	[device2]
+
+/boot      emmc  /dev/bootimg
+/recovery  emmc  /dev/recovery
+/system    ext4  /dev/block/mmcblk0p3
+/cache     ext4  /dev/block/mmcblk0p4
+/data      ext4  /dev/block/mmcblk0p5
+/emmc	   vfat  /dev/block/mmcblk0p6  flags=display=\"Phone Storage\";settingsstorage
+/sdcard    vfat  /dev/block/mmcblk1p1  flags=display=\"SD Card\";storage;removable
+/sd-ext    auto  /dev/block/mmcblk1p2
+/nvram     emmc  /dev/nvram            flags=display=\"Nvram\";backup=1
+/uboot     emmc  /dev/uboot            flags=display=\"Uboot\";backup=1
+
+#/boot			emmc	/dev/block/platform/mtk-msdc.0/by-name/boot		flags=display=\"Boot\";backup=1
+#/recovery		emmc	/dev/block/platform/mtk-msdc.0/by-name/recovery	flags=display=\"Recovery\";backup=1
+#/system		ext4	/dev/block/platform/mtk-msdc.0/by-name/system	flags=display=\"System\";backup=1
+#/cache			ext4	/dev/block/platform/mtk-msdc.0/by-name/cache	flags=display=\"Cache\"
+#/data			ext4	/dev/block/platform/mtk-msdc.0/by-name/userdata	flags=encryptable=/dev/block/platform/mtk-msdc.0/by-name/metadata
+#/nvram			emmc	/dev/block/platform/mtk-msdc.0/by-name/nvram	flags=display=\"Nvram\";backup=1;flashimg=1
+#/external_sd	auto	/dev/block/mmcblk1p1							flags=display=\"External SDcard\";storage;wipeingui;removable;backup=0
+#/usbotg		auto	/dev/block/sda1									flags=display=\"Usb-Otg\";storage;removable;backup=0
+
+#/boot       mtd         boot
+#/recovery   mtd         recovery
+#/cache      yaffs2      cache
+#/data       yaffs2      userdata
+#/misc       mtd         misc
+#/system     yaffs2      system
+#/sdcard     vfat        /dev/block/mmcblk0p1
+#/sd-ext     ext4        /dev/block/mmcblk0p2" > ~/$repo/device/"$ven"/"$dev"/recovery.fstab
+fi
+
+# if blank then create dummy for git init to work
+gu=$(git config --global user.name)
+ge=$(git config --global user.email)
+if [[ $gu == "" ]] || [[ $ge == "" ]]; then echo -e "[color]\n	ui = auto
+[user]\n	name = MTK\n	email = MTK@MTK.com" > ~/.gitconfig
+fi
+
+cd ~/$repo/device/"$ven"/"$dev"
+git init
+git add .
+git commit -a -m "Initial commit of $dev"
+
+cd;echo -e $cy"\nCurrent settings should build "$ye"TWRP$c$cy for your \
+device. However, you may need to \nmanually tweak the "$y"BoardConfig.mk$c$cy \
+& "$y"recovery.fstab$c$cy at\n"$y"/home/$(whoami)/$repo/device/$ven/$dev$c$cy
+to make it fully compatible for your device.\n\nRefer to various \
+example below$c \n-> https://github.com/omnirom?query=device
+-> https://github.com/teamwin?query=device\nMove your mouse pointer to \
+the above link, right-click to open it . . .\n\n"
+
+else clear;echo -e $cy"\n"$ye"Invalid Option$c$cy !\n\n"$c;sleep .5;continue;fi
+;;
+
+3) echo -en "\033c";cd ;echo -e $cy"\nCompiling "$y"TWRP$c$cy
+++++++++++++++\nDo you wanna build "$ye"TWRP$c$cy now ?\n\nFirst build will \
+take approx half-an-hour,\nsubsequent build will only be a few minutes \
+dependent on your PC CPU\n\nIf "$ye"ERROR 1$c$cy in build then refer to the \
+log at\n"$y"/home/$(whoami)/Desktop/TWRP/compile.log$c$cy\n\nPress$c Y$c$cy \
+to continue\nPress$c N$c$cy to Return to "$y"Main Menu$c\n\n"$c
+
+read -p "Pls select (Y/y or N/n) ? " build
+if [[ $build == [Yy] ]];then
+
+if [ ! -e ~/Desktop/TWRP/.repo ];then echo -en "\033c";echo -e $cy"
+No "$y"Source$c$cy folder info found ! Use "$y"Menu 1$c$cy to sync source \
+first . . .\n\n\n"$ye"Please wait$c$cy . . ."$c;sleep 5;continue
+elif [ ! -e ~/Desktop/TWRP/.dev ];then echo -en "\033c";echo -e $cy"
+No "$y"device$c$cy info found ! Use "$y"Menu 2$c$cy to setup first . . .
+\n\n"$ye"Please wait$c$cy . . ."$c;sleep 5;continue
+fi
+
+repo=$(cat ~/Desktop/TWRP/.repo);ven=$(cat ~/Desktop/TWRP/.ven)
+dev=$(cat ~/Desktop/TWRP/.dev)
+if [ ! -e ~/$repo/device/$ven/$dev ];then clear; echo -e $cy"
+The vendor & device folder at "$ye"~/"$y"$repo"$c$ye"/device/$ven/$dev$cy doesn't \
+exist !\n\n"$ye"Pls check$cy . . ."$c;sleep 8;continue
+fi
+
+START=`date +%s`
+
+# Using 'make clean' will wipe out whole $OUT folder making subsequenct build almost double the time
+if [[ $repo == omni ]]; then rm -rf ~/omni/out/target/product/* >/dev/null 2>&1
+elif [[ $repo == cm ]]; then rm -rf ~/cm/out/target/product/* >/dev/null 2>&1
+fi
+
+cd ~/$repo
+echo
+prebuilts/misc/linux-x86/ccache/ccache -M 25G
+export USE_CCACHE=1
+export LC_ALL=C
+source build/envsetup.sh
+lunch "$repo"_"$dev"-eng
+make -j4 recoveryimage 2>&1 | tee ~/Desktop/TWRP/compile.log
+
+if [ ! -e ~/$repo/out/target/product/$dev/recovery.img ];then clear;cd
+echo -e $cy"\nNo "$y"recovery.img$c$cy found at "$y"~/$repo/out/target/product/$dev !$c$cy\n
+Scroll back up to see "$ye"error$c$cy message or refer to \n"$y"/home/$(whoami)/Desktop/TWRP/compile.log$c$cy \
+for more info . . .\n\n"$c;read -p "Press [Enter] key to continue . . .";continue
+fi
+
+END=`date +%s`;ELAPSED=$(( $END - $START ));num=$ELAPSED;min=0;hour=0;day=0;if((num>59))
+then ((sec=num%60));((num=num/60));if((num>59));then ((min=num%60));((num=num/60))
+if((num>23));then ((hour=num%24));((day=num/24));else ((hour=num));fi;else ((min=num));fi
+else ((sec=num));fi;echo -en "\033c";echo -e $cy"\n\nElapsed time: $cy"$y$day$c$cy"day  \
+"$y$hour$c$cy"hour  "$y$min$c$cy"min  "$y$sec$c$cy"sec\n\n\n$cy"$y"Done$c$cy !$cy\n\nCongrats, \
+You have just build "$y"TWRP$c$c$cy with "$y"$repo$c$cy source code !\n$c\n"
+
+elif [[ $build == [Nn] ]];then sleep .5;continue
+
+else clear;echo -e $cy"\n"$ye"Invalid Option$c$cy !\n\n"$c;sleep 2;continue;fi
+;;
+
+
+4) echo -en "\033c";echo -e $cy"\nPush compiled "$ye"recovery.img$c$cy
+++++++++++++++++++++++++++\nPls plug-in your "$ye"\e[1mMTK$c$cy device \
+USB to the PC now & select the recovery partition.\n\nIf it stops here \
+for a long time then press "$ye"Ctrl + z$c$cy to stop then exit 
+"$ye"Terminal$c$cy & restart this script again . . .\n\n
+[ 1 ] "$ye"/dev/block/platform/mtk-msdc.0/by-name/recovery$c$cy
+[ 2 ] "$ye"/dev/recovery$c$cy\n
+[ B ] Back to "$y"Main Menu\n$c\n"
+read -p "Pls select (1, 2 or B/b) ? " push
+
+if [[ $push == [Bb] ]];then sleep .5;continue
+
+elif [[ $push == [1] ]] || [[ $push == [2] ]];then
+
+if [[ $push == [1] ]];then rec_part=$(echo /dev/block/platform/mtk-msdc.0/by-name/recovery)
+elif [[ $push == [2] ]];then rec_part=$(echo /dev/recovery)
+fi
+
+if [ ! -e ~/Desktop/TWRP/.repo ];then echo -en "\033c";echo -e $cy"
+No "$y"Source$c$cy folder info found ! Use "$y"Menu 1$c$cy to sync source \
+first . . .\n\n\n"$ye"Please wait$c$cy . . ."$c;sleep 5;continue
+elif [ ! -e ~/Desktop/TWRP/.dev ];then echo -en "\033c";echo -e $cy"
+No "$y"device$c$cy info found ! Use "$y"Menu 2$c$cy to setup first . . .
+\n\n"$ye"Please wait$c$cy . . ."$c;sleep 5;continue
+fi
+
+repo=$(cat ~/Desktop/TWRP/.repo);dev=$(cat ~/Desktop/TWRP/.dev)
+echo -e $cy"\n"$ye"Pls wait$c$cy . . ."$c
+
+if [ ! -e ~/$repo/out/target/product/$dev/recovery.img ];then clear
+echo -e $cy"\n"$ye"Error !$c$cy No compiled recovery.img found at
+"$ye"/home/$(whoami)/"$y"$repo"$c$ye"/out/target/product/$dev/recovery.img$cy
+\n"$ye"Please wait$c$cy . . .\n\n"$c;sleep 10;clear;continue
+fi
+
+echo;echo;sudo adb kill-server
+sleep 1 # delay require for adb command to work properly
+sudo adb start-server
+sleep 1 # delay require for adb command to work properly
+adb=$(adb "get-state")
+
+if [[ $adb == unknown ]];then clear;echo -e $cy"\n"$ye"adb shell$c$cy is \
+not working, try unplug/ replug USB cable . . .\nIf problem still persist \
+then exit/ restart "$ye"Terminal$c$cy . . .\n\n"$ye"
+Pls wait$c$cy . . ."$c;sleep 8;clear;continue
+fi
+
+su=$(adb shell su -V)
+if [[ $su = *"not found"* ]];then clear;echo -e $cy"\nPlease "$y"ROOT$c$cy your device first !\n\n"$y"";sleep 5
+
+if curl --silent --head http://www.google.com  | grep k >/dev/null;then
+python -mwebbrowser http://lmgtfy.com/?q=How+to+root+MTK &> /dev/null &
+clear;echo -e $cy"\n"$ye"Please wait$c$cy . . .\n\n"$c
+sleep 3;continue;else clear;echo -e $cy"\nInternet status: "$y"Down$c !\n\n"$c;sleep 3;continue
+fi
+
+fi
+
+MT=$(adb shell "dd if=/system/etc/firmware/DSP_ROM bs=4 skip=21 count=3" 2>&1)
+sleep 2 # delay require for adb command to work properly
+
+if [[ $MT != *"MT"* ]];then clear;echo -e $cy"\nFor "$y"MediaTek SoC$c$cy only . . .\n\n"$ye"
+Pls wait$c$cy . . .\n\n$c";sleep 5;continue
+fi
+
+# Get recovery partition size
+part=$(adb shell 'cat /proc/dumchar_info');part+=$(adb shell 'cat /proc/partinfo')
+part+=$(adb shell 'cat /proc/mtd')
+fs=$(echo "$part" | grep -o android);fs+=$(echo "$part" | grep -o system)
+r=$(echo "$part" | grep recovery)
+
+if [[ -e ~/Desktop/TWRP/.MTK ]]; then
+r1=$(echo "$r" | awk '{print $2}'); # proc/dumchar_info
+else r1=$(echo "$r" | awk '{print $3}'); # proc/partinfo
+fi
+
+if [[ $fs == system ]];then fs=mtd; r2=$(printf '%d\n' "0x$r1"); # /proc/mtd
+else r2=$(printf '%d\n' $r1); # proc/dumchar_info
+fi
+
+c1=$(stat -c %s ~/$repo/out/target/product/$dev/recovery.img)
+rp=$(echo "$r2"|awk '{printf "%10.1f %s\n",$1/1024/1024,$2}' | sed -e 's/\r//g' | xargs)
+cs=$(echo "$c1"|awk '{printf "%10.1f %s\n",$1/1024/1024,$2}' | sed -e 's/\r//g' | xargs)
+
+# Abort if oversize, typically for legacy MTK devices with 6MB recovery partition
+if [[ $c1 -gt $r2 ]];then clear;echo -e $cy"\n\nYour device recovery partition is only \
+"$y$rp$c$cy" MB/ "$y$r2$c$cy" bytes\nCompiled "$y"recovery.img$c$cy is "$y""$cs$c$cy" MB/ \
+"$y""$c1$c$cy" bytes, it is "$y"too large & causes region\noverlap !\n\n\n"$c
+read -p "Press [Enter] key to continue . . .";clear;continue
+fi
+
+if [[ $fs == android ]];then # Push to /data/local/tmp
+adb push ~/$repo/out/target/product/$dev/recovery.img /data/local/tmp/recovery.img
+s=$(adb shell su -c "dd if=/data/local/tmp/recovery.img of=$rec_part" 2>&1)
+fi
+
+if echo "$s" | grep 'No such file or directory';then clear
+echo -e $cy$ye"\nNo such file or directory !\n
+Pls wait$c$cy . . ."$c;sleep 5;continue
+fi
+
+if echo "$s" | grep 'failed\|denied';then # Try push to sdcard when failed or denied
+adb push ~/$repo/out/target/product/$dev/recovery.img /mnt/sdcard/recovery.img
+s=$(adb shell su -c "dd if=/mnt/sdcard/recovery.img of=$rec_part" 2>&1)
+fi
+
+if echo "$s" | grep 'failed\|denied';then
+adb push ~/$repo/out/target/product/$dev/recovery.img /mnt/sdcard2/recovery.img
+s=$(adb shell su -c "dd if=/mnt/sdcard2/recovery.img of=$rec_part" 2>&1)
+fi
+
+# some device refuse su so try without su
+if echo "$s" | grep 'failed\|denied';then
+adb push ~/$repo/out/target/product/$dev/recovery.img /data/local/tmp/recovery.img
+s=$(adb shell "dd if=/data/local/tmp/recovery.img of=$rec_part" 2>&1)
+fi
+
+if echo "$s" | grep 'failed\|denied';then
+adb push ~/$repo/out/target/product/$dev/recovery.img /mnt/sdcard/recovery.img
+s=$(adb shell "dd if=/mnt/sdcard/recovery.img of=$rec_part" 2>&1)
+fi
+
+if echo "$s" | grep 'failed\|denied';then
+adb push ~/$repo/out/target/product/$dev/recovery.img /mnt/sdcard2/recovery.img
+s=$(adb shell "dd if=/mnt/sdcard2/recovery.img of=$rec_part" 2>&1)
+fi
+
+if echo "$s" | grep 'failed\|denied';then clear
+echo -e $cy"\n"$y"Fail$c$cy to push compiled "$y"recovery.img$c$cy to \
+your device . . .\n\n"$ye"Pls wait$c$cy . . ."$c
+sleep 5;continue
+fi
+
+# For mtd partition
+if [[ $fs == mtd ]];then if [ ! -e ~/Desktop/TWRP/flash_image ];then echo
+wget -P ~/Desktop/TWRP https://raw.github.com/yuweng/TWRP/TWRP/flash_image
+fi
+
+echo -en "\033c";echo -e $cy"\n"$ye"Pls wait$c$cy . . ."$c;sleep 3
+
+adb push ~/$repo/out/target/product/$dev/recovery.img /data/local/tmp/recovery.img
+adb push ~/Desktop/TWRP/flash_image /data/local/tmp/flash_image
+adb shell su -c "chmod 0777 /data/local/tmp/flash_image"
+s=$(adb shell su -c "/data/local/tmp/flash_image recovery /data/local/tmp/recovery.img" 2>&1)
+adb shell su -c "rm -r /data/local/tmp/flash_image"
+adb shell su -c "rm -r /data/local/tmp/recovery.img"
+
+# some device refuse su so try without su
+if [[ $s != *"successfully"* ]]; then
+adb push ~/$repo/out/target/product/$dev/recovery.img /data/local/tmp/recovery.img
+adb push ~/Desktop/TWRP/flash_image /data/local/tmp/flash_image
+adb shell "chmod 0777 /data/local/tmp/flash_image"
+s=$(adb shell "/data/local/tmp/flash_image recovery /data/local/tmp/recovery.img" 2>&1)
+adb shell "rm -r /data/local/tmp/recovery.img"
+adb shell "rm -r /data/local/tmp/flash_image"
+fi
+
+if [[ $s != *"successfully"* ]]; then clear
+echo -e $cy"\n"$y"Fail$c$cy to push compiled "$y"recovery.img$c$cy to \
+your device . . .\n\n"$ye"Pls wait$c$cy . . ."$c
+sleep 5;continue
+fi
+
+fi # End of mtd partition for MTK legacy device
+
+adb reboot recovery
+adb shell su -c "reboot -n recovery" # Use su to reboot
+
+echo -en "\033c";echo -e $cy"\n\nRebooting to recovery . . .\n
+Congrats ! "$y"TWRP$c$cy has been successfully push to your device . . .
+\n\n"$ye"Pls wait$c$cy . . ."$c;sleep 5;continue
+
+else clear;echo -e $cy"\n"$ye"Invalid Option$c$cy !\n\n"$c;sleep 2;continue;fi
+;;
+
+
+5) echo -en "\033c";echo -e $cy"\nCleaning up the "$y"Build Environment$c$cy . . .
+\nWhat would you like to do ?\n
+[ 1 ] Clean everything & build from scratch$c (make clean)$c$cy
+[ 2 ] "$y"100%$c$cy clean$c (After this, use "$cy$y"Menu 1$c to sync/ extract clean source again)\n$c$cy
+[ B ] Back to "$y"Main Menu\n\n"$c
+
+read -p "Pls select (1 or 2) ? " cln
+
+repo=$(cat ~/Desktop/TWRP/.repo)
+
+if [ ! -e ~/Desktop/TWRP/.repo ];then echo -en "\033c";echo -e $cy"
+No "$y"Source$c$cy folder info found ! Use "$y"Menu 1$c$cy to sync source \
+first . . .\n\n\n"$ye"Please wait$c$cy . . ."$c;sleep 5;continue
+fi
+
+if [[ $cln == 1 ]];then
+
+if [[ $repo == omni ]]; then cd ~/omni
+elif [[ $repo == cm ]]; then cd ~/cm
+fi
+
+make -j4 clean dataclean installclean
+
+clear;echo -e $cy"\nDone !\n\n"$ye"Please wait$c$cy . . ."$c;sleep 3;continue
+
+elif [[ $cln == 2 ]];then
+
+# To prevent accidental rm -rf command will wipe whole HOME folder !
+if [[ $repo == omni ]]; then cd ~/omni
+rm -rf ./*
+rm ~/Desktop/TWRP/.ven >/dev/null 2>&1
+rm ~/Desktop/TWRP/.dev >/dev/null 2>&1
+rm ~/Desktop/TWRP/.MTK >/dev/null 2>&1
+rm ~/Desktop/TWRP/.branch >/dev/null 2>&1
+rm ~/Desktop/TWRP/compile.log >/dev/null 2>&1
+~/omni/prebuilts/misc/linux-x86/ccache/ccache -C
+elif [[ $repo == cm ]]; then cd ~/cm
+rm -rf ./*
+rm ~/Desktop/TWRP/.ven >/dev/null 2>&1
+rm ~/Desktop/TWRP/.dev >/dev/null 2>&1
+rm ~/Desktop/TWRP/.MTK >/dev/null 2>&1
+rm ~/Desktop/TWRP/.branch >/dev/null 2>&1
+rm ~/Desktop/TWRP/compile.log >/dev/null 2>&1
+~/cm/prebuilts/misc/linux-x86/ccache/ccache -C
+fi
+
+clear;echo -e $cy"\nDone !\n\n"$ye"Please wait$c$cy . . ."$c;sleep 3;continue
+
+elif [[ $cln == [bB] ]];then sleep .5;continue
+
+else clear;echo -e $cy"\n"$ye"Invalid Option$c$cy !\n\n$c";sleep 2;continue;fi
+;;
+
+6) echo -en "\033c";echo -e $cy"\nPush "$y"Device Tree$c$cy to Github
+++++++++++++++++++++++++++
+Do you have a github account ?\n
+[ B ] Back to "$y"Main Menu\n$c\n"
+read -p "Pls select (Y/y or N/n) ? " ga
+
+if [[ $ga == [Bb] ]];then sleep .5;continue
+
+elif [[ $ga == [Yy] ]] || [[ $ga == [Nn] ]];then clear; echo -e "\n$cy"$ye"Please wait$c$cy . . ."$c
+
+if curl --silent --head http://www.google.com  | grep k >/dev/null;then
+
+if [ ! -e ~/Desktop/TWRP/.repo ];then echo -en "\033c";echo -e $cy"
+No "$y"Source$c$cy folder info found ! Use "$y"Menu 1$c$cy to sync source \
+first . . .\n\n\n"$ye"Please wait$c$cy . . ."$c;sleep 5;continue
+elif [ ! -e ~/Desktop/TWRP/.branch ];then echo -en "\033c";echo -e $cy"
+No "$y"branch$c$cy info found ! Use "$y"Menu 1$c$cy to sync source first . . .
+\n\n"$ye"Please wait$c$cy . . ."$c;sleep 5;continue
+elif [ ! -e ~/Desktop/TWRP/.ven ];then echo -en "\033c";echo -e $cy"
+No "$y"vendor$c$cy info found ! Use "$y"Menu 2$c$cy to setup first . . .
+\n\n"$ye"Please wait$c$cy . . ."$c;sleep 5;continue
+elif [ ! -e ~/Desktop/TWRP/.dev ];then echo -en "\033c";echo -e $cy"
+No "$y"device$c$cy info found ! Use "$y"Menu 2$c$cy to setup first . . .
+\n\n"$ye"Please wait$c$cy . . ."$c;sleep 5;continue
+fi
+
+repo=$(cat ~/Desktop/TWRP/.repo);ven=$(cat ~/Desktop/TWRP/.ven);dev=$(cat ~/Desktop/TWRP/.dev);branch=$(cat ~/Desktop/TWRP/.branch)
+
+if [ ! -e ~/$repo/device/$ven/$dev ];then clear; echo -e $cy"
+The vendor & device folder at "$ye"~/"$y"$repo"$c$ye"/device/$ven/$dev$cy doesn't \
+exist !\n\n"$ye"Pls check$cy . . ."$c;sleep 8;continue
+fi
+
+if [ -e ~/$repo/device/$ven/$dev ] && [ ! -e ~/$repo/device/$ven/$dev/.git ]; then
+cd ~/$repo/device/$ven/$dev;echo;git init
+fi
+
+if [[ $ga == [Yy] ]];then clear
+echo -e $cy"\nPls key-in your "$ye"github User Name$c$cy\n\nIf it fails \
+to update then manually login to "$ye"github.com$c$cy to confirm the correct
+"$ye"User Name/ Password$c$cy then come back to this "$y"Menu$c$cy & try again . . ."$c
+elif [[ $ga == [Nn] ]];then
+python -mwebbrowser http://github.com &> /dev/null &
+clear;echo -e $cy"\nPls register \
+an account at "$ye"github.com$c$cy now then come back here & key-in your
+"$ye"User Name/ Password"$c;echo;echo
+else clear;echo -e $cy"\n"$ye"Invalid Option$c$cy !\n\n$c";sleep 2;continue
+fi
+
+echo;echo;read -p "Pls enter your github User Name & press [ENTER]: " gu
+if [[ $gu == "" ]];then echo -e $cy"\n"$y"No User Name entered !\n
+"$ye"Pls wait$c$cy . . ."$c;sleep 3;continue;fi
+echo;echo;read -p "Pls enter your github registered email & press [ENTER]: " ge
+if [[ $ge == "" ]];then echo -e $cy"\n"$y"No email entered !\n
+"$ye"Pls wait$c$cy . . ."$c;sleep 3;continue;fi
+
+git config --global user.name "$gu"
+git config --global user.email "$ge"
+git config --global github.user "$gu"
+
+sed 's|com.*|com/'$gu'/device_'$ven'_'$dev'.git|' ~/$repo/device/$ven/$dev/.git/config>config.tmp
+mv config.tmp ~/$repo/device/$ven/$dev/.git/config
+cd ~/$repo/device/$ven/$dev
+echo;echo;curl -u $gu https://api.github.com/user/repos -d "{\"name\": \"device_"$ven"_"$dev"\"}"
+cd ~/$repo/device/$ven/$dev
+git add --all
+git commit -m "first commit"
+git branch $branch
+git checkout $branch
+git add --all
+git commit -m "Final commit"
+git remote add origin https://github.com/$gu/device_"$ven"_"$dev".git
+echo;echo;git push -u origin $branch
+python -mwebbrowser http://github.com/$gu/device_"$ven"_"$dev" &> /dev/null &
+echo -e $cy"\n"$y"Done !\n$c\n"
+read -p "Press [Enter] key to continue . . .";clear;continue;
+
+else clear;echo -e $cy"\nInternet status: "$y"Down !\n\n"$c;sleep 3;continue;fi
+
+else clear;echo -e $cy"\n"$ye"Invalid Option$c$cy !\n\n$c";sleep 2;continue;fi
+;;
+
+h|H) while [ answer != "0" ];do echo -en "\033c";echo -e $cy"
+  ######################################################################
+  #                                                                    #
+  #                 Welcome to the Compile "$y"TWRP$c$cy Script                 #
+  #           For compiling "$y"TWRP$c$cy Recovery for "$y"MediaTek$c$cy devices         #
+  #                    On bbqlinux-2016.02.27-x86_64                   #
+  #                                                                    #
+  #                      By "$y"yuweng$c$cy@xda-developers                      #
+  #                                                                    #
+  ######################################################################\n\n
+     Help Menu\n     +++++++++\n
+     [ 1 ] Get Help on "$y"BBQLinux$c$cy
+     [ 2 ] Get Help on "$y"TWRP$c$cy\n\n\n
+  "$ye"x"$c"$cy. Credits & Exit	    "$ye"xx"$c"$cy. Instant Exit	   "$ye"b"$c"$cy. Back to "$y"Main Menu$c\n"
+read -p '' answer;case $answer in x|X) echo -en "\033c";echo -e $cy"
+  ######################################################################
+  #                                                                    #
+  #                 Welcome to the Compile "$y"TWRP$c$cy Script                 #
+  #           For compiling "$y"TWRP$c$cy Recovery for "$y"MediaTek$c$cy devices         #
+  #                    On bbqlinux-2016.02.27-x86_64                   #
+  #                                                                    #
+  #                      By "$y"yuweng$c$cy@xda-developers                      #
+  #                                                                    #
+  ######################################################################\n
+Credits to$c\n++++++++++$c$cy
+Master Shifu "$ye"carliv$c$cy who taught me how to compile "$ye"CWM$c
+http://forum.xda-developers.com/showpost.php?p=46206519\n$c$cy
+Master Shifu "$ye"Dees_Troy$c$cy & "$ye"Teamwin$c$cy DEV Team for "$ye"TWRP$c
+https://twrp.me$c$cy\n
+"$ye"Please wait$c$cy . . .\n$c
+Move your mouse pointer to the above link, right-click to open it . . ."$c;sleep 18;echo -en "\033c";echo -e $cy"
+  ######################################################################
+  #                                                                    #
+  #                 Welcome to the Compile "$y"TWRP$c$cy Script                 #
+  #           For compiling "$y"TWRP$c$cy Recovery for "$y"MediaTek$c$cy devices         #
+  #                    On bbqlinux-2016.02.27-x86_64                   #
+  #                                                                    #
+  #                      By "$y"yuweng$c$cy@xda-developers                      #
+  #                                                                    #
+  ######################################################################\n
+"$ye"osm0sis$c$cy for "$ye"unpackbootimg$c
+http://forum.xda-developers.com/showthread.php?t=2073775$cy
+\nMost importantly Master Shifu "$ye"codeworkx$c$cy for "$ye"BBQLinux$c
+http://bbqlinux.org$c$cy\n
+Last but not least, "$ye"Credits$c$cy & "$ye"Thanks$c$cy to various "$ye"Master Shifu$c$cy that share
+their expertise on "$ye"XDA$c$cy & on the www . . .$c :D$c$cy\n\n
+Good Luck & Cheers . . .$c ;)";sleep 18;echo -en "\033c";break;;
+
+1) if curl --silent --head http://www.google.com  | grep k >/dev/null;then
+python -mwebbrowser http://webchat.freenode.net/?channels=bbqlinux &> /dev/null &
+python -mwebbrowser https://plus.google.com/communities/106642342159578225975 &> /dev/null &
+clear;echo -e $cy"\n"$ye"Please wait$c$cy . . .\n\n"$c;sleep 3;continue;else clear
+echo -e $cy"\nInternet status: "$y"Down$c !\n\n"$c;sleep 3;continue
+fi;;
+
+2) if curl --silent --head http://www.google.com  | grep k >/dev/null;then
+python -mwebbrowser http://webchat.freenode.net/?channels=twrp &> /dev/null &
+python -mwebbrowser http://forum.xda-developers.com/showthread.php?t=1943625 &> /dev/null &
+python -mwebbrowser http://forum.xda-developers.com/android/software/twrp-flags-boardconfig-mk-t3333970 &> /dev/null &
+clear;echo -e $cy"\n"$ye"Please wait$c$cy . . .\n\n"$c;sleep 3;continue;else clear
+echo -e $cy"\nInternet status: "$y"Down$c !\n\n"$c;sleep 3;continue
+fi;;
+
+b|B) sd=$BASH_SOURCE;sleep .4;sh `pwd`/"$sd";exit 0;;
+
+xx|XX) echo -en "\033c";break;;*) echo -en "\033c";echo -e $cy"
+"$ye"Invalid Option$c$cy !"$c;sleep 2;continue;esac;echo "Press Enter for Menu"
+read key;done;echo -en "\033c";exit 0;;*) echo -en "\033c";echo -e \
+$cy"\n"$ye"Invalid Option$c$cy !"$c;sleep 2;continue;esac
+echo "Press Enter for Menu";read key;done;echo -en "\033c"
+exit 0
