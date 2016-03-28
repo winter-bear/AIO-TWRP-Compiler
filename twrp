@@ -1,24 +1,24 @@
 #!/bin/bash
 e="\x1b[";c=$e"39;49;00m";y=$e"4;33m";ye=$e"33;01m";cy=$e"36;01m"
 
-os=$(lsb_release -s -d | grep -o BBQLinux)
-if [[ $os != BBQLinux ]];then clear
-echo -e $cy"\nSorry guys, nice try, this script only works on \
-"$y"BBQLinux$c$cy only !$c :D\n\n$cy"$ye"Pls wait$c$cy . . .\n\n$c"
-sleep 5
-python -mwebbrowser http://bbqlinux.org &> /dev/null &
-python -mwebbrowser http://webchat.freenode.net/?channels=bbqlinux &> /dev/null &
-python -mwebbrowser https://plus.google.com/communities/106642342159578225975 &> /dev/null &
-python -mwebbrowser http://forum.xda-developers.com/showthread.php?t=2695242 &> /dev/null &
-echo -en "\033c";exit 0
-fi
+#os=$(lsb_release -s -d | grep -o BBQLinux)
+#if [[ $os != BBQLinux ]];then clear
+#echo -e $cy"\nSorry guys, nice try, this script only works on \
+#"$y"BBQLinux$c$cy only !$c :D\n\n$cy"$ye"Pls wait$c$cy . . .\n\n$c"
+#sleep 5
+#python -mwebbrowser http://bbqlinux.org &> /dev/null &
+#python -mwebbrowser http://webchat.freenode.net/?channels=bbqlinux &> /dev/null &
+#python -mwebbrowser https://plus.google.com/communities/106642342159578225975 &> /dev/null &
+#python -mwebbrowser http://forum.xda-developers.com/showthread.php?t=2695242 &> /dev/null &
+#echo -en "\033c";exit 0
+#fi
 
 while [[ answer != 0 ]];do echo -en "\033c";echo -e $cy"
   ######################################################################
   #                                                                    #
   #                 Welcome to the Compile "$y"TWRP$c$cy Script                 #
   #           For compiling "$y"TWRP$c$cy Recovery for "$y"MediaTek$c$cy devices         #
-  #                    On bbqlinux-2016.02.27-x86_64                   #
+  #                                     #
   #                                                                    #
   #                      By "$y"yuweng$c$cy@xda-developers                      #
   #                                                                    #
@@ -36,7 +36,7 @@ read -p '' answer;case $answer in x|X) break;;
 +++++++++++++++++++++++++++++++++++\nFull Credits & Thanks to the \
 "$y"OmniROM$c$cy & "$y"CM$c$cy Development Team\n\nPlease take note that \
 this will take quite some time to complete. $c"$cy"Make sure\nthat your \
-broadband is connected first !\n\nYou can press "$ye"Ctrl + z$c$cy to \
+broadband is connected first !\n\nYou can press "$ye"Ctrl + c$c$cy to \
 stop this script just in case you need to . . .\n\nTo continue, just run \
 this "$y"Menu$c$cy again & it will resume syncing.\n\nYou can also update it \
 from time to time & updating won't take that long.\n\n
